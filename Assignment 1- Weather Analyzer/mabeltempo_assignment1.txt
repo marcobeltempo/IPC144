@@ -1,0 +1,66 @@
+Script started on Fri 16 Oct 2015 04:43:08 PM EDT
+mabeltempo@matrix:~/ipc_144/Assignment1> nano weatherAnalzerFinal.c 
+[?1049h[1;32r(B[m[4l[?7h[?12l[?25h[?1h=[?1h=[?1h=[39;49m[39;49m(B[m[H[2J(B[0;7m  GNU nano 2.3.1                       File: weatherAnalzerFinal.c                                                     [3;1H(B[m// Marco Beltempo[4d// Assignment 1- Version 1.0[5d// IPC-144SLL[6d// Student ID: 03128095[7d// Started: 10/9/2015[8d// Compltete: 10/16/2015[9d// Due Date: 10/16/2015[11d# include <stdio.h>[12d# define SYM 20[14dfloat averageTemp (float low, float high);[16dint  main (void) {[18;9Hchar condition;[18;34H//Declaring variables[19;9Hint days, counter;[33G//store days entered[20;9Hfloat sum = 0, high_temp, low_temp, avg;[20;57H//sum and avg will be used to calculate overall[22;17Hprintf("Weather Analyzer\n");   //Title[23;17Hprintf("=============\n");[25ddo[27d{[28;9Hprintf("Please enter a positive number of days: ");  //Force the user to enter anything greater than zero[29;17Hscanf("%d", &days);[30;52H(B[0;7m[ Read 99 lines ][31d^G(B[m Get Help[31;20H(B[0;7m^O(B[m WriteOut[31;39H(B[0;7m^R(B[m Read File[58G(B[0;7m^Y(B[m Prev Page[77G(B[0;7m^K(B[m Cut Text[31;96H(B[0;7m^C(B[m Cur Pos[32d(B[0;7m^X(B[m Exit[32;20H(B[0;7m^J(B[m Justify[32;39H(B[0;7m^W(B[m Where Is[32;58H(B[0;7m^V(B[m Next Page[77G(B[0;7m^U(B[m UnCut Text[96G(B[0;7m^T(B[m To Spell[3d[4d[5d[6d[7d[8d[9d[10d[11d[12d[13d[14d[15d[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[30d[K[A7[2;30r8[30d[14S[1;32r[2;1H[K[17d}[9Gwhile (days <= 0);[20dfor[21;9H(counter = 1; counter <=days; counter ++)[57G//The user will be prompted depening on the # of days entered[23;9H{[24;17Hprintf("\nEnter today's high: ");[57G//Enter high temp[25;25Hscanf("%f",&high_temp);[27;17Hprintf("Enter today's low: ");[27;57H//Enter low temp[28;25Hscanf("%f",&low_temp);[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[29d7[2;30r8[30d[14S[1;32r[16;17Hprintf("Enter today's conditions (s: sunny, c: cloudy, p: precipitation): "); //Enter the condition[17;25Hscanf(" %c", &condition);[19;17Hfloat result;[21;17Hresult = averageTemp (high_temp, low_temp);     //Call the averageTemp function to calculate average[23;17Hprintf("Today's average temperature is: %0.2f \n", result);     //Display average for that day[25;17Hint sym_count = 0;[27;17Hwhile   (condition == 's' && sym_count < SYM) { //user enters"s" it displays @[28;33Hsym_count+=1;[29;41Hprintf("@");[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[29d7[3;30r8[30d[14S[1;32r[16;25H}[18;17Hwhile   (condition == 'c' && sym_count < SYM) { //user enters "c" it displays ~[20;33Hsym_count+=1;[21;41Hprintf("~");[22;33H}[24;18Hwhile  ((condition == 'p' && result <= 0 && sym_count < SYM)) {[26;33Hsym_count+=1;[27;42Hprintf("*");   // user enters p and average is <= 0 display *[28;33H}[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[29d7[3;30r8[30d[14S[1;32r[16;17Hwhile ((condition == 'p' && result > 0 && sym_count < SYM)) {[18;33Hsym_count+=1;[19;41Hprintf(";");    // user enters p and the average is >0 displays ;[20;17H}[22dsum += (high_temp+low_temp)/2;  // daily average is calculated and stored in sum[24d}[25;17Havg = sum /days;[25;41H//The overall average is calulated and printed to the screen[27;25Hprintf("\naverage for all %d days is: %0.2f degrees \n", days, avg);[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[29d7[2;30r8[30d[14S[1;32r[2;1H[K[17d}[19dfloat averageTemp(float high,float low) //function that calculates the daily average[21d{[23;9Hfloat result;[25;9Hresult = (high + low) / 2;[27;9Hreturn result;[28d}[16d[17d[18d[19d[20d[21d[22d[23d[24d[25d[26d[27d[28d[29d7[2;30r8[30d[14S[1;32r[16;1H[17d[18d[31d[J[32;119H[32;1H[?1049l[?1l>mabeltempo@matrix:~/ipc_144/Assignment1> cc[K[Kgcc wear\te[K[K[K[KtherAnalzerFinal.c 
+mabeltempo@matrix:~/ipc_144/Assignment1> a.out
+Weather Analyzer
+=============
+Please enter a positive number of days: 7
+
+Enter today's high: 15.3
+Enter today's low: 10.8
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): s
+Today's average temperature is: 13.05 
+@@@@@@@@@@@@@@@@@@@@
+Enter today's high: 11.5
+Enter today's low: 5.0
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): c
+Today's average temperature is: 8.25 
+~~~~~~~~~~~~~~~~~~~~
+Enter today's high: 9.9
+Enter today's low: 3.3
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): p
+Today's average temperature is: 6.60 
+;;;;;;;;;;;;;;;;;;;;
+Enter today's high: 5.6
+Enter today's low: -0.8
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): p
+Today's average temperature is: 2.40 
+;;;;;;;;;;;;;;;;;;;;
+Enter today's high: 3.4
+Enter today's low: -6.5
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): p
+Today's average temperature is: -1.55 
+********************
+Enter today's high: -1.1
+Enter today's low: -11.0
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): p
+Today's average temperature is: -6.05 
+********************
+Enter today's high: -3.3 4
+Enter today's low: -8.2
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): c
+Today's average temperature is: -5.80 
+~~~~~~~~~~~~~~~~~~~~
+average for all 7 days is: 2.41 degrees 
+mabeltempo@matrix:~/ipc_144/Assignment1> a.out
+Weather Analyzer
+=============
+Please enter a positive number of days: 0
+Please enter a positive number of days: -3
+Please enter a positive number of days: 2
+
+Enter today's high: 20
+Enter today's low: 9.2
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): c
+Today's average temperature is: 14.60 
+~~~~~~~~~~~~~~~~~~~~
+Enter today's high: 14.4
+Enter today's low: 6.1
+Enter today's conditions (s: sunny, c: cloudy, p: precipitation): p
+Today's average temperature is: 10.25 
+;;;;;;;;;;;;;;;;;;;;
+average for all 2 days is: 12.43 degrees 
+mabeltempo@matrix:~/ipc_144/Assignment1> exit
+exit
+
+Script done on Fri 16 Oct 2015 04:48:34 PM EDT

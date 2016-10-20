@@ -1,0 +1,21 @@
+Script started on Mon 28 Sep 2015 11:28:07 PM EDT
+mabeltempo@matrix:~/ipc_144> a.out
+
+SIN Validator
+=============
+SIN (0 to quit): 193456787
+
+This is a valid SIN
+
+SIN (0 to quit): 193456788
+
+This is not a valid SIN
+
+SIN (0 to quit): 0
+
+Have a Nice Day!
+
+mabeltempo@matrix:~/ipc_144> exit
+exit
+
+Script done on Mon 28 Sep 2015 11:28:38 PM EDT

@@ -1,0 +1,31 @@
+Script started on Mon 23 Nov 2015 02:04:03 PM EST
+Mon Nov 23 14:04:03 EST 2015
+mabeltempo@matrix:~> gcc gsi.c
+mabeltempo@matrix:~> a.out
+Grocery Store Inventory
+=======================
+Barcode   :  630090801
+Price     :  3.25
+Quantity  :  5
+Barcode   :  6380613916
+Price     :  4.45
+Quantity  :  15
+Barcode   :  6038367157
+Price     :  3.95
+Quantity  :  10
+Barcode   :  0
+
+             Goods in Stock
+             ==============
+
+Barcode    Price    Quantity    Value
+-------------------------------------
+6300090801  3.25          5     16.25
+6380613916  4.45          15    66.75
+6038367157  3.95          10    39.50
+                               ------
+Total value goods in stock     122.50
+mabeltempo@matrix:~> exit
+exit
+
+Script done on Mon 23 Nov 2015 02:05:23 PM EST

@@ -1,0 +1,45 @@
+Script started on Fri 20 Nov 2015 11:42:30 PM EST
+Fri Nov 20 23:42:31 EST 2015
+mabeltempo@matrix:~/ipc_144/Assignment2> gcc weatherAnalyzer_2.c
+mabeltempo@matrix:~/ipc_144/Assignment2> a.out
+Weather Analyzer 2.0
+====================
+How many days of data?
+Enter an integer between 1 and 14: 18
+ERROR! Try again!
+Enter an integer between 1 and 14: 7
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 15.3, 10.8, s
+Today's average temperature is: 13.05
+@@@@@@@@@@@@@@@@@@@@@
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 11.5, 5.0, c
+Today's average temperature is: 8.25
+~~~~~~~~~~~~~~~~~~~~~
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 9.9, 3.3, p
+Today's average temperature is: 6.60
+;;;;;;;;;;;;;;;;;;;;;
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 5.6, -0.8, p
+Today's average temperature is: 2.40
+;;;;;;;;;;;;;;;;;;;;;
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 3.4
+...
+Error! Try again!
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 3.4, -6.5, giraffe, elephant
+Error! Try again!
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: -6.5, 3.4, p
+Error! Try again!
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: 3.4, -6.5, p
+Today's average temperature is: -1.55
+*********************
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: -1.1, -11.0. p
+Error! Try again!
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: -1.1, -11.0, p
+Today's average temperature is: -6.05
+*********************
+Enter today's high, low and condition (c=cloudy, s=sunny, p= precipitation) separated by commas: -3.4, -8.2, c
+Today's average temperature is: -5.80
+~~~~~~~~~~~~~~~~~~~~~
+Your seven day average is 2.41
+mabeltempo@matrix:~/ipc_144/Assignment2> exit
+exit
+
+Script done on Fri 20 Nov 2015 11:44:53 PM EST

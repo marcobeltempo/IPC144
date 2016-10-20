@@ -1,0 +1,17 @@
+Script started on Mon 30 Nov 2015 01:21:06 AM EST
+Mon Nov 30 01:21:07 EST 2015
+mabeltempo@matrix:~> gcc w8.c
+mabeltempo@matrix:~> a.out
+Word Counter
+============
+Text to be anazlyzed : C is not that hard!
+Word count           : 5
+mabeltempo@matrix:~> a.out
+Word Counter
+============
+Text to be anazlyzed : This is another test run of the word count program
+Word count           : 10
+mabeltempo@matrix:~> exit
+exit
+
+Script done on Mon 30 Nov 2015 01:21:47 AM EST

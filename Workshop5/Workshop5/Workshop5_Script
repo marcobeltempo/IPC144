@@ -1,0 +1,19 @@
+Script started on Thu 05 Nov 2015 03:42:29 PM EST
+mabeltempo@matrix:~> cd u[Kipc_144/Workshop5
+mabeltempo@matrix:~/ipc_144/Workshop5> gcc fract_simp.c 
+mabeltempo@matrix:~/ipc_144/Workshop5> a.out
+Fraction Simplifier
+===================
+Numerator: 4
+Denominator: 16
+4 / 16 = 1 / 4
+mabeltempo@matrix:~/ipc_144/Workshop5> a.out
+Fraction Simplifier
+===================
+Numerator: 6
+Denominator: 20
+6 / 20 = 3 / 10
+mabeltempo@matrix:~/ipc_144/Workshop5> exit
+exit
+
+Script done on Thu 05 Nov 2015 03:43:21 PM EST

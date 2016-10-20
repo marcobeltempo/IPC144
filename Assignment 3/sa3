@@ -1,0 +1,741 @@
+Script started on Wed 09 Dec 2015 06:28:27 PM EST
+Wed Dec  9 18:28:28 EST 2015
+mabeltempo@matrix:~/ipc_144/Assignment3> whoami
+mabeltempo
+mabeltempo@matrix:~/ipc_144/Assignment3> cat assignment3.c
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/*V 1.1:
+Changes:
+
+1) declared i outside of loop, you don't need -std=c99 to compile anymore
+2) added a check for existence of historicaldata.csv
+*/
+
+/*an instance of this struct holds the weather data for a single day*/
+struct DailyData{
+    int day;
+    int month;
+    int year;
+    float high;
+    float low;
+    float precipitation;
+    char condition;
+};
+
+/*an instance of this struct holds summary information for the weather
+for a given month*/
+struct MonthlyStatistic{
+    float minTemperature;
+    float maxTemperature;
+    float averageTemperature;
+    float totalPrecipitation;
+};
+int readDailyData(FILE* fp, struct DailyData allData[]);
+
+int getRelevantRecords(int yearWanted, const struct DailyData allData[], int sz,  struct DailyData yearData[]);
+void sortYearData(struct DailyData yearData[], int sz);
+void getStats(int month, const struct DailyData yearData[], int sz, struct MonthlyStatistic* monthStats);
+void printMonthlyStatistic(int month, const struct MonthlyStatistic* monthly);
+void graphLine(int month, const struct MonthlyStatistic* monthly);
+void printVerbose(const struct DailyData yearData[],int sz);
+char symbolToDraw(char condition, float avgTemp);
+float average(float first, float second);
+void draw( char c, int num );
+
+
+int main(void){
+    FILE* fp = fopen("historicaldata.csv","r");
+    if(!fp){
+        printf("you need to put historicaldata.csv into this directory\n");
+        exit(0);
+    }
+    struct DailyData  allData[3000];
+    struct DailyData yearData[366];
+    int numTotalRecords;
+
+    numTotalRecords = readDailyData(fp, allData);
+    int year;
+    int reportType;
+    int i;
+    struct MonthlyStatistic monthly[12];
+    printf("Please enter the year for the report: ");
+    scanf("%d",&year);
+    printf("Please enter the type of report you wish to generate:\n");
+    printf("1) summary\n");
+    printf("2) detailed\n");
+    scanf("%d",&reportType);
+    int numDays = getRelevantRecords(year,allData,numTotalRecords,yearData);
+    sortYearData(yearData,numDays);
+
+    for(i=0;i<12;i++){
+        getStats(i+1,yearData,numDays,&monthly[i]);
+    }
+
+    printf("Weather summary for %d\n",year);
+    printf("|   Month   | High  |  Low  |  Avg  | Precip  |\n");
+    printf("|-----------|-------|-------|-------|---------|\n");
+    for(i=0;i<12;i++){
+        printMonthlyStatistic(i+1,&monthly[i]);
+    }
+    printf("\n\n");
+    printf("Precipitation Graph\n");
+    for (i=0;i<12;i++){
+        graphLine(i+1,&monthly[i]);
+	
+    }
+    if(reportType == 2){
+        printf("\n\n");
+        printf("Detailed report:");
+        printVerbose(yearData,numDays);
+    }
+	printf("\n");
+
+    return 0;
+}
+
+// This functions stores data in the array allData
+
+int readDailyData(FILE* fp, struct DailyData allData[]) {
+    
+int i=0;
+   
+    while(fscanf(fp,"%d,%d,%d,%f,%f,%f,%c\n",
+        &allData[i].year,&allData[i].month,&allData[i].day,
+        &allData[i].high,&allData[i].low,&allData[i].precipitation,
+        &allData[i].condition) == 7){
+        i++;
+    }
+
+    return i;
+}
+// This function copies over all records from allData to yearData and matches yearWanted
+
+int getRelevantRecords(int yearWanted, const struct DailyData allData[], int sz,  struct DailyData yearData[]) {
+
+int i = 0;
+int j = 0;
+int x = 0;
+    
+	for(i = 0; i < sz; i++)
+
+   	if (allData[i].year == yearWanted) {
+	    yearData[x]	= allData[i];
+   		x++;
+		j++;
+	}
+    
+	return j;
+}
+
+// This functions records in the yearData entry
+
+void sortYearData(struct DailyData yearData[], int sz) {
+
+int i, j;   
+ 	
+	for (i = 0; i < sz - 1; i++){
+           for (j = 0; j < sz - i - 1; j++) {
+            
+		if ((yearData[j].month > yearData[j+1].month) || ((yearData[j].month == yearData[j+1].month) && (yearData[j].day > yearData[j+1].day)))
+            {
+                struct DailyData tmp = yearData[j];
+                yearData[j] = yearData[j+1];
+                yearData[j+1] = tmp;
+            }
+        }
+    }
+}
+
+//This function finds the min, max, average temperature and precipitation
+
+void getStats(int month, const struct DailyData yearData[],int sz,struct MonthlyStatistic* monthly) {
+
+float runningTotal = 0;
+float highTemp = 0;
+float lowTemp = 200;
+float sum=0; 
+float precipTotal=0;
+
+int i;
+
+ for (i = 0; i < sz; i++){
+
+    if(month == yearData[i].month){
+       
+        
+	if (highTemp < yearData[i].high){ 
+
+		highTemp = yearData[i].high; 
+  	}
+
+	if (lowTemp > yearData[i].low){
+
+		lowTemp = yearData[i].low;
+  	}  
+
+	precipTotal+= yearData[i].precipitation;
+	sum+=(yearData[i].high+yearData[i].low);
+
+runningTotal++;
+
+	}
+}
+
+monthly->averageTemperature = (sum/ runningTotal) /2;
+monthly->maxTemperature = highTemp;
+monthly->minTemperature = lowTemp;
+monthly->totalPrecipitation = precipTotal;
+
+}
+
+// This function will print out a row of summary table
+
+void printMonthlyStatistic(int month,const struct MonthlyStatistic* monthly) {
+
+const char * months[12]= {"January", "February", "March", "April", "May","June", "July", "August", "September", "October", "November", "December"};
+
+printf("| %9s | %-5.1f | %-5.1f | %-5.1f | %-7.1f |\n",months[month-1],
+monthly->maxTemperature,
+monthly->minTemperature, monthly->averageTemperature,
+monthly->totalPrecipitation);
+    
+}
+
+// This function will print a graphline with percipitation bar graph
+
+void graphLine(int month, const struct MonthlyStatistic* monthly) {
+
+const char * months[12]= {"January", "February", "March", "April", "May","June", "July", "August", "September", "October", "November", "December"};
+
+int total = 0;
+int i; 
+
+	
+	total = monthly->totalPrecipitation / 10 + 0.6;
+             
+	printf("\n%10s |%c",months[month-1], monthly->totalPrecipitation);
+	        
+	for(i = 0; i < total; i++)      
+	                                  
+		putchar('*');
+}
+
+//This function will print out all the data for everyday of the year selected
+
+void printVerbose(const struct DailyData allData[], int sz) {
+
+    static char *months[] = {NULL, "January", "February", "March", "April",
+            "May", "June", "July", "August", "September", "October",
+            "November", "December"};
+int i;
+float aver;
+
+    for (i = 0; i < sz; i++) {
+
+        aver = average(allData[i].high,allData[i].low);
+
+        printf("\n%10s %3d %5d: %5.1f  ", months[allData[i].month], allData[i].day, allData[i].year, aver);   
+
+        draw(symbolToDraw(allData[i].condition, aver),20);
+
+    }
+
+	printf("\n");
+
+}
+
+//This function will print out the appropriate symbol for the condition
+
+char symbolToDraw(char condition, float avgTemp) {
+
+    char c = '~';
+    char p = ';';
+    char s = '@';
+    char l = '*';
+    
+    if(avgTemp < 0 && condition == 'p'){
+       condition = '*';
+
+    }else if (condition == 'p'){
+        condition = ';';
+
+    }else if( condition == 's'){
+        condition = '@';
+
+    }else if( condition == 'c'){
+        condition = '~';
+    }
+
+return condition;
+
+}
+
+//Calculate the average
+float average(float first, float second) {
+
+    float average;
+    average = (first + second)/2;
+    return average;
+
+}
+
+//Function to print our condition charecetrs
+
+void draw( char c, int num ) {
+
+    int i;//This function is for drying the amount of symbols needed
+    for(i=0; i < num; i++){
+        printf("%c", c);
+
+        }
+}
+mabeltempo@matrix:~/ipc_144/Assignment3> gcc assignment3.c
+mabeltempo@matrix:~/ipc_144/Assignment3> a.out
+Please enter the year for the report: 2013
+Please enter the type of report you wish to generate:
+1) summary
+2) detailed
+2
+Weather summary for 2013
+|   Month   | High  |  Low  |  Avg  | Precip  |
+|-----------|-------|-------|-------|---------|
+|   January | 9.8   | -26.2 | -7.8  | 55.3    |
+|  February | 7.5   | -23.3 | -8.6  | 33.1    |
+|     March | 14.2  | -19.6 | -4.7  | 33.2    |
+|     April | 23.7  | -5.3  | 6.2   | 56.8    |
+|       May | 33.0  | -0.6  | 13.9  | 62.7    |
+|      June | 32.1  | 8.0   | 19.7  | 69.7    |
+|      July | 34.9  | 12.6  | 22.2  | 181.8   |
+|    August | 31.5  | 11.0  | 20.9  | 69.2    |
+| September | 34.1  | 5.0   | 16.1  | 69.0    |
+|   October | 24.8  | -2.9  | 10.8  | 56.9    |
+|  November | 16.0  | -12.8 | 2.1   | 36.2    |
+|  December | 15.6  | -17.8 | -4.2  | 65.8    |
+
+
+Precipitation Graph
+
+   January |******
+  February |***
+     March |***
+     April |******
+       May |******
+      June |*******
+      July |******************
+    August |*******
+ September |*******
+   October |******
+  November |****
+  December |*******
+
+Detailed report:
+   January   1  2013: -10.6  ~~~~~~~~~~~~~~~~~~~~
+   January   2  2013: -14.6  ********************
+   January   3  2013: -14.5  @@@@@@@@@@@@@@@@@@@@
+   January   4  2013:  -3.8  ~~~~~~~~~~~~~~~~~~~~
+   January   5  2013:  -0.4  ********************
+   January   6  2013:  -7.8  ********************
+   January   7  2013: -22.8  @@@@@@@@@@@@@@@@@@@@
+   January   8  2013: -14.3  ********************
+   January   9  2013: -14.1  ********************
+   January  10  2013:  -4.7  ********************
+   January  11  2013:   7.2  ;;;;;;;;;;;;;;;;;;;;
+   January  12  2013:   2.3  ;;;;;;;;;;;;;;;;;;;;
+   January  13  2013:   6.0  ;;;;;;;;;;;;;;;;;;;;
+   January  14  2013:   3.8  @@@@@@@@@@@@@@@@@@@@
+   January  15  2013:   0.4  ;;;;;;;;;;;;;;;;;;;;
+   January  16  2013:  -4.2  @@@@@@@@@@@@@@@@@@@@
+   January  17  2013:   2.2  ~~~~~~~~~~~~~~~~~~~~
+   January  18  2013:  -4.6  ********************
+   January  19  2013:  -4.8  ********************
+   January  20  2013: -12.0  ********************
+   January  21  2013: -17.0  @@@@@@@@@@@@@@@@@@@@
+   January  22  2013: -17.2  ********************
+   January  23  2013: -17.8  @@@@@@@@@@@@@@@@@@@@
+   January  24  2013: -15.1  ********************
+   January  25  2013:  -9.2  ~~~~~~~~~~~~~~~~~~~~
+   January  26  2013:  -8.5  @@@@@@@@@@@@@@@@@@@@
+   January  27  2013:  -8.1  ********************
+   January  28  2013: -14.4  @@@@@@@@@@@@@@@@@@@@
+   January  29  2013: -16.3  ********************
+   January  30  2013:  -8.6  ********************
+   January  31  2013:   1.0  ;;;;;;;;;;;;;;;;;;;;
+  February   1  2013:   1.4  ~~~~~~~~~~~~~~~~~~~~
+  February   2  2013:  -4.1  ********************
+  February   3  2013: -10.1  ********************
+  February   4  2013: -12.2  @@@@@@@@@@@@@@@@@@@@
+  February   5  2013:  -9.6  ********************
+  February   6  2013: -15.4  ********************
+  February   7  2013: -14.2  ********************
+  February   8  2013: -17.1  @@@@@@@@@@@@@@@@@@@@
+  February   9  2013: -10.2  @@@@@@@@@@@@@@@@@@@@
+  February  10  2013:  -9.1  ********************
+  February  11  2013: -16.6  @@@@@@@@@@@@@@@@@@@@
+  February  12  2013: -16.2  @@@@@@@@@@@@@@@@@@@@
+  February  13  2013:  -9.8  ********************
+  February  14  2013:  -0.8  ********************
+  February  15  2013: -12.0  ********************
+  February  16  2013: -14.7  ~~~~~~~~~~~~~~~~~~~~
+  February  17  2013:  -9.2  ********************
+  February  18  2013:  -5.9  ********************
+  February  19  2013:   1.6  ;;;;;;;;;;;;;;;;;;;;
+  February  20  2013:   1.6  ~~~~~~~~~~~~~~~~~~~~
+  February  21  2013:   4.8  ;;;;;;;;;;;;;;;;;;;;
+  February  22  2013:  -2.1  @@@@@@@@@@@@@@@@@@@@
+  February  23  2013:  -3.8  @@@@@@@@@@@@@@@@@@@@
+  February  24  2013:  -7.3  @@@@@@@@@@@@@@@@@@@@
+  February  25  2013:  -7.4  ********************
+  February  26  2013: -11.9  @@@@@@@@@@@@@@@@@@@@
+  February  27  2013: -15.3  @@@@@@@@@@@@@@@@@@@@
+  February  28  2013: -13.9  ~~~~~~~~~~~~~~~~~~~~
+     March   1  2013:  -8.9  @@@@@@@@@@@@@@@@@@@@
+     March   2  2013: -15.8  @@@@@@@@@@@@@@@@@@@@
+     March   3  2013: -13.9  ********************
+     March   4  2013: -11.3  @@@@@@@@@@@@@@@@@@@@
+     March   5  2013: -11.3  ********************
+     March   6  2013:  -5.0  ********************
+     March   7  2013:  -8.7  @@@@@@@@@@@@@@@@@@@@
+     March   8  2013:  -3.0  ********************
+     March   9  2013:  -2.2  ********************
+     March  10  2013:   2.4  ;;;;;;;;;;;;;;;;;;;;
+     March  11  2013:   3.9  @@@@@@@@@@@@@@@@@@@@
+     March  12  2013:  -8.4  ********************
+     March  13  2013: -10.1  @@@@@@@@@@@@@@@@@@@@
+     March  14  2013:   0.3  @@@@@@@@@@@@@@@@@@@@
+     March  15  2013:  -2.0  ~~~~~~~~~~~~~~~~~~~~
+     March  16  2013: -11.4  ********************
+     March  17  2013: -10.0  ********************
+     March  18  2013:  -6.3  ********************
+     March  19  2013:   2.6  ;;;;;;;;;;;;;;;;;;;;
+     March  20  2013:   0.1  ;;;;;;;;;;;;;;;;;;;;
+     March  21  2013:  -1.2  ********************
+     March  22  2013:  -5.0  ********************
+     March  23  2013:  -7.6  @@@@@@@@@@@@@@@@@@@@
+     March  24  2013:  -9.4  @@@@@@@@@@@@@@@@@@@@
+     March  25  2013:  -3.7  ********************
+     March  26  2013: -10.2  ~~~~~~~~~~~~~~~~~~~~
+     March  27  2013:  -4.1  ~~~~~~~~~~~~~~~~~~~~
+     March  28  2013:   8.8  @@@@@@@@@@@@@@@@@@@@
+     March  29  2013:  -0.4  ********************
+     March  30  2013:  -0.5  @@@@@@@@@@@@@@@@@@@@
+     March  31  2013:   8.1  @@@@@@@@@@@@@@@@@@@@
+     April   1  2013:   2.4  ;;;;;;;;;;;;;;;;;;;;
+     April   2  2013:   3.9  ;;;;;;;;;;;;;;;;;;;;
+     April   3  2013:   3.8  ;;;;;;;;;;;;;;;;;;;;
+     April   4  2013:   3.0  ;;;;;;;;;;;;;;;;;;;;
+     April   5  2013:  -2.2  ~~~~~~~~~~~~~~~~~~~~
+     April   6  2013:   2.5  ;;;;;;;;;;;;;;;;;;;;
+     April   7  2013:   2.7  ;;;;;;;;;;;;;;;;;;;;
+     April   8  2013:   8.7  ~~~~~~~~~~~~~~~~~~~~
+     April   9  2013:   2.5  ;;;;;;;;;;;;;;;;;;;;
+     April  10  2013:  10.4  @@@@@@@@@@@@@@@@@@@@
+     April  11  2013:  10.3  ;;;;;;;;;;;;;;;;;;;;
+     April  12  2013:  11.2  ;;;;;;;;;;;;;;;;;;;;
+     April  13  2013:  15.0  @@@@@@@@@@@@@@@@@@@@
+     April  14  2013:   8.6  ;;;;;;;;;;;;;;;;;;;;
+     April  15  2013:   0.0  ~~~~~~~~~~~~~~~~~~~~
+     April  16  2013:   1.5  ;;;;;;;;;;;;;;;;;;;;
+     April  17  2013:   6.8  @@@@@@@@@@@@@@@@@@@@
+     April  18  2013:   9.1  ;;;;;;;;;;;;;;;;;;;;
+     April  19  2013:   4.5  @@@@@@@@@@@@@@@@@@@@
+     April  20  2013:   4.5  @@@@@@@@@@@@@@@@@@@@
+     April  21  2013:  15.5  @@@@@@@@@@@@@@@@@@@@
+     April  22  2013:  10.4  ;;;;;;;;;;;;;;;;;;;;
+     April  23  2013:   2.1  ;;;;;;;;;;;;;;;;;;;;
+     April  24  2013:   5.0  @@@@@@@@@@@@@@@@@@@@
+     April  25  2013:   6.8  @@@@@@@@@@@@@@@@@@@@
+     April  26  2013:   9.9  ;;;;;;;;;;;;;;;;;;;;
+     April  27  2013:   6.2  ~~~~~~~~~~~~~~~~~~~~
+     April  28  2013:  10.8  @@@@@@@@@@@@@@@@@@@@
+     April  29  2013:   5.3  ~~~~~~~~~~~~~~~~~~~~
+     April  30  2013:   6.4  ;;;;;;;;;;;;;;;;;;;;
+       May   1  2013:   8.7  ;;;;;;;;;;;;;;;;;;;;
+       May   2  2013:   9.6  ;;;;;;;;;;;;;;;;;;;;
+       May   3  2013:  10.0  ~~~~~~~~~~~~~~~~~~~~
+       May   4  2013:   9.4  ;;;;;;;;;;;;;;;;;;;;
+       May   5  2013:   5.8  @@@@@@@@@@@@@@@@@@@@
+       May   6  2013:  11.3  ;;;;;;;;;;;;;;;;;;;;
+       May   7  2013:   8.7  ;;;;;;;;;;;;;;;;;;;;
+       May   8  2013:  17.3  ~~~~~~~~~~~~~~~~~~~~
+       May   9  2013:  12.5  @@@@@@@@@@@@@@@@@@@@
+       May  10  2013:  10.9  ;;;;;;;;;;;;;;;;;;;;
+       May  11  2013:  12.1  ;;;;;;;;;;;;;;;;;;;;
+       May  12  2013:  16.1  ;;;;;;;;;;;;;;;;;;;;
+       May  13  2013:  15.5  ;;;;;;;;;;;;;;;;;;;;
+       May  14  2013:  15.8  ;;;;;;;;;;;;;;;;;;;;
+       May  15  2013:  15.0  ;;;;;;;;;;;;;;;;;;;;
+       May  16  2013:  11.6  @@@@@@@@@@@@@@@@@@@@
+       May  17  2013:   8.9  ~~~~~~~~~~~~~~~~~~~~
+       May  18  2013:  10.6  @@@@@@@@@@@@@@@@@@@@
+       May  19  2013:  16.6  ~~~~~~~~~~~~~~~~~~~~
+       May  20  2013:  12.0  ;;;;;;;;;;;;;;;;;;;;
+       May  21  2013:  14.6  ;;;;;;;;;;;;;;;;;;;;
+       May  22  2013:  13.6  @@@@@@@@@@@@@@@@@@@@
+       May  23  2013:  14.6  @@@@@@@@@@@@@@@@@@@@
+       May  24  2013:  14.5  ;;;;;;;;;;;;;;;;;;;;
+       May  25  2013:  16.0  @@@@@@@@@@@@@@@@@@@@
+       May  26  2013:  23.4  ;;;;;;;;;;;;;;;;;;;;
+       May  27  2013:  26.2  ;;;;;;;;;;;;;;;;;;;;
+       May  28  2013:  13.5  ;;;;;;;;;;;;;;;;;;;;
+       May  29  2013:  16.6  ;;;;;;;;;;;;;;;;;;;;
+       May  30  2013:  21.1  @@@@@@@@@@@@@@@@@@@@
+       May  31  2013:  17.5  ;;;;;;;;;;;;;;;;;;;;
+      June   1  2013:  17.8  ;;;;;;;;;;;;;;;;;;;;
+      June   2  2013:  21.5  ;;;;;;;;;;;;;;;;;;;;
+      June   3  2013:  23.4  ;;;;;;;;;;;;;;;;;;;;
+      June   4  2013:  14.3  ;;;;;;;;;;;;;;;;;;;;
+      June   5  2013:  11.5  @@@@@@@@@@@@@@@@@@@@
+      June   6  2013:  16.2  ;;;;;;;;;;;;;;;;;;;;
+      June   7  2013:  19.1  @@@@@@@@@@@@@@@@@@@@
+      June   8  2013:  17.7  ;;;;;;;;;;;;;;;;;;;;
+      June   9  2013:  18.7  ;;;;;;;;;;;;;;;;;;;;
+      June  10  2013:  19.3  ~~~~~~~~~~~~~~~~~~~~
+      June  11  2013:  17.1  ~~~~~~~~~~~~~~~~~~~~
+      June  12  2013:  23.7  ;;;;;;;;;;;;;;;;;;;;
+      June  13  2013:  18.5  ;;;;;;;;;;;;;;;;;;;;
+      June  14  2013:  17.8  @@@@@@@@@@@@@@@@@@@@
+      June  15  2013:  18.0  @@@@@@@@@@@@@@@@@@@@
+      June  16  2013:  21.2  ;;;;;;;;;;;;;;;;;;;;
+      June  17  2013:  19.6  @@@@@@@@@@@@@@@@@@@@
+      June  18  2013:  16.7  ;;;;;;;;;;;;;;;;;;;;
+      June  19  2013:  14.4  @@@@@@@@@@@@@@@@@@@@
+      June  20  2013:  17.0  @@@@@@@@@@@@@@@@@@@@
+      June  21  2013:  20.4  @@@@@@@@@@@@@@@@@@@@
+      June  22  2013:  22.0  ;;;;;;;;;;;;;;;;;;;;
+      June  23  2013:  25.3  @@@@@@@@@@@@@@@@@@@@
+      June  24  2013:  26.8  @@@@@@@@@@@@@@@@@@@@
+      June  25  2013:  24.6  ;;;;;;;;;;;;;;;;;;;;
+      June  26  2013:  25.5  ~~~~~~~~~~~~~~~~~~~~
+      June  27  2013:  21.5  @@@@@@@@@@@@@@@@@@@@
+      June  28  2013:  19.9  ;;;;;;;;;;;;;;;;;;;;
+      June  29  2013:  20.3  ~~~~~~~~~~~~~~~~~~~~
+      June  30  2013:  20.6  @@@@@@@@@@@@@@@@@@@@
+      July   1  2013:  20.0  @@@@@@@@@@@@@@@@@@@@
+      July   2  2013:  20.0  @@@@@@@@@@@@@@@@@@@@
+      July   3  2013:  22.1  ;;;;;;;;;;;;;;;;;;;;
+      July   4  2013:  24.4  ;;;;;;;;;;;;;;;;;;;;
+      July   5  2013:  27.2  @@@@@@@@@@@@@@@@@@@@
+      July   6  2013:  24.0  ;;;;;;;;;;;;;;;;;;;;
+      July   7  2013:  24.2  ;;;;;;;;;;;;;;;;;;;;
+      July   8  2013:  24.4  ;;;;;;;;;;;;;;;;;;;;
+      July   9  2013:  22.6  ;;;;;;;;;;;;;;;;;;;;
+      July  10  2013:  20.1  @@@@@@@@@@@@@@@@@@@@
+      July  11  2013:  20.5  @@@@@@@@@@@@@@@@@@@@
+      July  12  2013:  20.2  @@@@@@@@@@@@@@@@@@@@
+      July  13  2013:  21.7  @@@@@@@@@@@@@@@@@@@@
+      July  14  2013:  24.5  @@@@@@@@@@@@@@@@@@@@
+      July  15  2013:  26.6  @@@@@@@@@@@@@@@@@@@@
+      July  16  2013:  27.4  @@@@@@@@@@@@@@@@@@@@
+      July  17  2013:  29.5  ~~~~~~~~~~~~~~~~~~~~
+      July  18  2013:  28.7  @@@@@@@@@@@@@@@@@@@@
+      July  19  2013:  27.9  ;;;;;;;;;;;;;;;;;;;;
+      July  20  2013:  23.9  ;;;;;;;;;;;;;;;;;;;;
+      July  21  2013:  19.3  @@@@@@@@@@@@@@@@@@@@
+      July  22  2013:  20.1  @@@@@@@@@@@@@@@@@@@@
+      July  23  2013:  22.3  @@@@@@@@@@@@@@@@@@@@
+      July  24  2013:  17.3  @@@@@@@@@@@@@@@@@@@@
+      July  25  2013:  18.0  @@@@@@@@@@@@@@@@@@@@
+      July  26  2013:  18.8  @@@@@@@@@@@@@@@@@@@@
+      July  27  2013:  18.2  ~~~~~~~~~~~~~~~~~~~~
+      July  28  2013:  18.1  @@@@@@@@@@@@@@@@@@@@
+      July  29  2013:  17.4  ;;;;;;;;;;;;;;;;;;;;
+      July  30  2013:  19.0  @@@@@@@@@@@@@@@@@@@@
+      July  31  2013:  19.7  ;;;;;;;;;;;;;;;;;;;;
+    August   1  2013:  20.9  ;;;;;;;;;;;;;;;;;;;;
+    August   2  2013:  20.4  ;;;;;;;;;;;;;;;;;;;;
+    August   3  2013:  19.9  ~~~~~~~~~~~~~~~~~~~~
+    August   4  2013:  17.6  @@@@@@@@@@@@@@@@@@@@
+    August   5  2013:  17.4  ~~~~~~~~~~~~~~~~~~~~
+    August   6  2013:  20.2  @@@@@@@@@@@@@@@@@@@@
+    August   7  2013:  23.2  ;;;;;;;;;;;;;;;;;;;;
+    August   8  2013:  22.8  ~~~~~~~~~~~~~~~~~~~~
+    August   9  2013:  22.2  @@@@@@@@@@@@@@@@@@@@
+    August  10  2013:  18.6  @@@@@@@@@@@@@@@@@@@@
+    August  11  2013:  18.0  @@@@@@@@@@@@@@@@@@@@
+    August  12  2013:  18.8  ;;;;;;;;;;;;;;;;;;;;
+    August  13  2013:  16.1  ~~~~~~~~~~~~~~~~~~~~
+    August  14  2013:  16.9  @@@@@@@@@@@@@@@@@@@@
+    August  15  2013:  17.5  @@@@@@@@@@@@@@@@@@@@
+    August  16  2013:  18.9  ~~~~~~~~~~~~~~~~~~~~
+    August  17  2013:  19.9  @@@@@@@@@@@@@@@@@@@@
+    August  18  2013:  20.5  @@@@@@@@@@@@@@@@@@@@
+    August  19  2013:  21.9  ~~~~~~~~~~~~~~~~~~~~
+    August  20  2013:  23.4  ~~~~~~~~~~~~~~~~~~~~
+    August  21  2013:  25.3  @@@@@@@@@@@@@@@@@@@@
+    August  22  2013:  23.8  @@@@@@@@@@@@@@@@@@@@
+    August  23  2013:  20.0  ~~~~~~~~~~~~~~~~~~~~
+    August  24  2013:  18.8  @@@@@@@@@@@@@@@@@@@@
+    August  25  2013:  21.2  ;;;;;;;;;;;;;;;;;;;;
+    August  26  2013:  22.8  ;;;;;;;;;;;;;;;;;;;;
+    August  27  2013:  23.2  ;;;;;;;;;;;;;;;;;;;;
+    August  28  2013:  24.7  @@@@@@@@@@@@@@@@@@@@
+    August  29  2013:  24.3  @@@@@@@@@@@@@@@@@@@@
+    August  30  2013:  24.7  ;;;;;;;;;;;;;;;;;;;;
+    August  31  2013:  23.0  @@@@@@@@@@@@@@@@@@@@
+ September   1  2013:  22.2  ;;;;;;;;;;;;;;;;;;;;
+ September   2  2013:  20.6  @@@@@@@@@@@@@@@@@@@@
+ September   3  2013:  17.4  @@@@@@@@@@@@@@@@@@@@
+ September   4  2013:  19.5  ~~~~~~~~~~~~~~~~~~~~
+ September   5  2013:  12.9  ~~~~~~~~~~~~~~~~~~~~
+ September   6  2013:  14.9  ~~~~~~~~~~~~~~~~~~~~
+ September   7  2013:  18.0  ;;;;;;;;;;;;;;;;;;;;
+ September   8  2013:  15.4  @@@@@@@@@@@@@@@@@@@@
+ September   9  2013:  15.2  ;;;;;;;;;;;;;;;;;;;;
+ September  10  2013:  25.8  @@@@@@@@@@@@@@@@@@@@
+ September  11  2013:  26.6  ;;;;;;;;;;;;;;;;;;;;
+ September  12  2013:  19.2  ;;;;;;;;;;;;;;;;;;;;
+ September  13  2013:  15.4  @@@@@@@@@@@@@@@@@@@@
+ September  14  2013:  11.3  @@@@@@@@@@@@@@@@@@@@
+ September  15  2013:  14.4  ;;;;;;;;;;;;;;;;;;;;
+ September  16  2013:  10.1  @@@@@@@@@@@@@@@@@@@@
+ September  17  2013:  10.4  ~~~~~~~~~~~~~~~~~~~~
+ September  18  2013:  13.5  ~~~~~~~~~~~~~~~~~~~~
+ September  19  2013:  15.9  @@@@@@@@@@@@@@@@@@@@
+ September  20  2013:  20.0  ;;;;;;;;;;;;;;;;;;;;
+ September  21  2013:  14.6  ;;;;;;;;;;;;;;;;;;;;
+ September  22  2013:  10.5  ~~~~~~~~~~~~~~~~~~~~
+ September  23  2013:  11.6  @@@@@@@@@@@@@@@@@@@@
+ September  24  2013:  12.3  @@@@@@@@@@@@@@@@@@@@
+ September  25  2013:  14.8  @@@@@@@@@@@@@@@@@@@@
+ September  26  2013:  15.4  @@@@@@@@@@@@@@@@@@@@
+ September  27  2013:  15.1  @@@@@@@@@@@@@@@@@@@@
+ September  28  2013:  15.0  @@@@@@@@@@@@@@@@@@@@
+ September  29  2013:  16.9  ;;;;;;;;;;;;;;;;;;;;
+ September  30  2013:  16.9  ;;;;;;;;;;;;;;;;;;;;
+   October   1  2013:  17.8  @@@@@@@@@@@@@@@@@@@@
+   October   2  2013:  18.3  @@@@@@@@@@@@@@@@@@@@
+   October   3  2013:  14.5  ;;;;;;;;;;;;;;;;;;;;
+   October   4  2013:  15.9  ;;;;;;;;;;;;;;;;;;;;
+   October   5  2013:  15.1  ;;;;;;;;;;;;;;;;;;;;
+   October   6  2013:  16.5  ;;;;;;;;;;;;;;;;;;;;
+   October   7  2013:  13.1  ;;;;;;;;;;;;;;;;;;;;
+   October   8  2013:  11.6  ~~~~~~~~~~~~~~~~~~~~
+   October   9  2013:  12.1  @@@@@@@@@@@@@@@@@@@@
+   October  10  2013:  13.5  ~~~~~~~~~~~~~~~~~~~~
+   October  11  2013:  13.2  ~~~~~~~~~~~~~~~~~~~~
+   October  12  2013:  13.4  @@@@@@@@@@@@@@@@@@@@
+   October  13  2013:  12.9  @@@@@@@@@@@@@@@@@@@@
+   October  14  2013:  12.4  ~~~~~~~~~~~~~~~~~~~~
+   October  15  2013:  11.6  ;;;;;;;;;;;;;;;;;;;;
+   October  16  2013:  15.8  ;;;;;;;;;;;;;;;;;;;;
+   October  17  2013:  12.9  ;;;;;;;;;;;;;;;;;;;;
+   October  18  2013:  11.4  ;;;;;;;;;;;;;;;;;;;;
+   October  19  2013:   9.8  ~~~~~~~~~~~~~~~~~~~~
+   October  20  2013:   8.1  ~~~~~~~~~~~~~~~~~~~~
+   October  21  2013:  11.5  ;;;;;;;;;;;;;;;;;;;;
+   October  22  2013:   5.7  @@@@@@@@@@@@@@@@@@@@
+   October  23  2013:   4.9  ~~~~~~~~~~~~~~~~~~~~
+   October  24  2013:   4.5  ~~~~~~~~~~~~~~~~~~~~
+   October  25  2013:   6.0  ;;;;;;;;;;;;;;;;;;;;
+   October  26  2013:   4.6  ;;;;;;;;;;;;;;;;;;;;
+   October  27  2013:   5.2  ;;;;;;;;;;;;;;;;;;;;
+   October  28  2013:   2.8  ~~~~~~~~~~~~~~~~~~~~
+   October  29  2013:   2.1  ;;;;;;;;;;;;;;;;;;;;
+   October  30  2013:   7.3  @@@@@@@@@@@@@@@@@@@@
+   October  31  2013:  11.0  @@@@@@@@@@@@@@@@@@@@
+  November   1  2013:  11.4  ;;;;;;;;;;;;;;;;;;;;
+  November   2  2013:   4.2  ;;;;;;;;;;;;;;;;;;;;
+  November   3  2013:   0.6  @@@@@@@@@@@@@@@@@@@@
+  November   4  2013:   0.4  @@@@@@@@@@@@@@@@@@@@
+  November   5  2013:   7.2  @@@@@@@@@@@@@@@@@@@@
+  November   6  2013:  11.8  ;;;;;;;;;;;;;;;;;;;;
+  November   7  2013:   5.0  ~~~~~~~~~~~~~~~~~~~~
+  November   8  2013:   3.0  @@@@@@@@@@@@@@@@@@@@
+  November   9  2013:   5.2  ;;;;;;;;;;;;;;;;;;;;
+  November  10  2013:   4.1  ;;;;;;;;;;;;;;;;;;;;
+  November  11  2013:   1.4  ;;;;;;;;;;;;;;;;;;;;
+  November  12  2013:  -2.5  @@@@@@@@@@@@@@@@@@@@
+  November  13  2013:  -1.8  ~~~~~~~~~~~~~~~~~~~~
+  November  14  2013:   5.2  @@@@@@@@@@@@@@@@@@@@
+  November  15  2013:   8.5  ~~~~~~~~~~~~~~~~~~~~
+  November  16  2013:   7.8  ~~~~~~~~~~~~~~~~~~~~
+  November  17  2013:  12.0  ;;;;;;;;;;;;;;;;;;;;
+  November  18  2013:   6.3  ;;;;;;;;;;;;;;;;;;;;
+  November  19  2013:  -0.2  @@@@@@@@@@@@@@@@@@@@
+  November  20  2013:  -1.0  @@@@@@@@@@@@@@@@@@@@
+  November  21  2013:   3.9  ;;;;;;;;;;;;;;;;;;;;
+  November  22  2013:   3.6  ;;;;;;;;;;;;;;;;;;;;
+  November  23  2013:  -5.7  ********************
+  November  24  2013:  -8.9  ~~~~~~~~~~~~~~~~~~~~
+  November  25  2013:  -2.9  ~~~~~~~~~~~~~~~~~~~~
+  November  26  2013:   0.3  ;;;;;;;;;;;;;;;;;;;;
+  November  27  2013:  -3.5  ********************
+  November  28  2013:  -6.6  ********************
+  November  29  2013:  -6.3  ~~~~~~~~~~~~~~~~~~~~
+  November  30  2013:  -0.8  @@@@@@@@@@@@@@@@@@@@
+  December   1  2013:   2.2  ;;;;;;;;;;;;;;;;;;;;
+  December   2  2013:   0.8  @@@@@@@@@@@@@@@@@@@@
+  December   3  2013:  -0.2  @@@@@@@@@@@@@@@@@@@@
+  December   4  2013:   2.5  ;;;;;;;;;;;;;;;;;;;;
+  December   5  2013:   8.7  @@@@@@@@@@@@@@@@@@@@
+  December   6  2013:  -0.4  @@@@@@@@@@@@@@@@@@@@
+  December   7  2013:  -4.7  @@@@@@@@@@@@@@@@@@@@
+  December   8  2013:  -4.9  @@@@@@@@@@@@@@@@@@@@
+  December   9  2013:  -1.6  ********************
+  December  10  2013:  -7.0  ~~~~~~~~~~~~~~~~~~~~
+  December  11  2013:  -7.7  ~~~~~~~~~~~~~~~~~~~~
+  December  12  2013:  -9.6  ~~~~~~~~~~~~~~~~~~~~
+  December  13  2013:  -8.9  ********************
+  December  14  2013: -12.9  ********************
+  December  15  2013:  -9.2  ********************
+  December  16  2013: -12.9  ********************
+  December  17  2013:  -9.8  ********************
+  December  18  2013:  -3.3  ~~~~~~~~~~~~~~~~~~~~
+  December  19  2013:  -0.4  ********************
+  December  20  2013:   0.1  ;;;;;;;;;;;;;;;;;;;;
+  December  21  2013:  -0.5  ********************
+  December  22  2013:  -0.3  ********************
+  December  23  2013:  -3.8  ~~~~~~~~~~~~~~~~~~~~
+  December  24  2013: -11.9  ********************
+  December  25  2013: -10.4  ********************
+  December  26  2013:  -3.8  ********************
+  December  27  2013:  -2.2  @@@@@@@@@@@@@@@@@@@@
+  December  28  2013:   2.5  ~~~~~~~~~~~~~~~~~~~~
+  December  29  2013:  -1.6  @@@@@@@@@@@@@@@@@@@@
+  December  30  2013:  -9.6  @@@@@@@@@@@@@@@@@@@@
+  December  31  2013:  -9.1  ********************
+
+mabeltempo@matrix:~/ipc_144/Assignment3> a.out
+Please enter the year for the report: 2010
+Please enter the type of report you wish to generate:
+1) summary
+2) detailed
+1
+Weather summary for 2010
+|   Month   | High  |  Low  |  Avg  | Precip  |
+|-----------|-------|-------|-------|---------|
+|   January | 8.8   | -27.2 | -8.3  | 46.7    |
+|  February | 6.5   | -22.3 | -8.9  | 30.2    |
+|     March | 13.0  | -20.6 | -4.5  | 32.5    |
+|     April | 22.7  | -9.9  | 6.0   | 93.6    |
+|       May | 30.0  | -1.0  | 13.6  | 45.2    |
+|      June | 32.7  | 6.4   | 20.4  | 45.8    |
+|      July | 32.3  | 9.2   | 20.1  | 82.5    |
+|    August | 34.2  | 8.6   | 20.1  | 22.9    |
+| September | 28.5  | 3.6   | 16.2  | 66.9    |
+|   October | 24.4  | -0.5  | 11.0  | 46.4    |
+|  November | 20.0  | -13.1 | 2.1   | 47.3    |
+|  December | 13.2  | -12.2 | -0.6  | 23.9    |
+
+
+Precipitation Graph
+
+   January |*****
+  February |***
+     March |***
+     April |*********
+       May |*****
+      June |*****
+      July |********
+    August |**
+ September |*******
+   October |*****
+  November |*****
+  December |**
+mabeltempo@matrix:~/ipc_144/Assignment3> exit
+exit
+
+Script done on Wed 09 Dec 2015 06:29:07 PM EST
